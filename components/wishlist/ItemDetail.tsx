@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Check, ExternalLink, Gift, Pencil, Star, Trash2, Undo2 } from 'lucide-react';
-import { formatMoney, hostOf, relativeTime } from '@/lib/format';
+import { Price } from '@/components/Money';
+import { hostOf, relativeTime } from '@/lib/format';
 import type { Item } from '@/lib/types';
 import { ItemImage } from './ItemImage';
 
@@ -43,9 +44,7 @@ export function ItemDetail({
         <p className="eyebrow !text-[10.5px]">{store || 'Wish'}</p>
         <h2 className="mt-2 text-[22px] font-extrabold leading-tight">{item.title}</h2>
         <div className="mt-3 flex items-baseline gap-3 flex-wrap">
-          {item.price !== null && (
-            <span className="display-italic text-[30px] text-[var(--color-violet-lift)] tnum">{formatMoney(item.price, item.currency)}</span>
-          )}
+          {item.price !== null && <Price amount={item.price} currency={item.currency} size="lg" />}
           {item.quantity > 1 && <span className="muted text-[14px]">wants {item.quantity}</span>}
           {item.priority > 0 && (
             <span className="chip chip-violet">
@@ -98,7 +97,7 @@ export function ItemDetail({
           <div className="mt-5 pt-5 border-t border-[var(--color-line)]">
             {revealReservations && reserved > 0 && (
               <p className="text-[12.5px] text-[var(--color-ok)] mb-3">
-                🎁 Reserved{item.reservedNames?.length ? ` by ${item.reservedNames.join(', ')}` : ''} ({reserved}/{item.quantity})
+                Reserved{item.reservedNames?.length ? ` by ${item.reservedNames.join(', ')}` : ''} ({reserved}/{item.quantity})
               </p>
             )}
             <div className="flex flex-wrap gap-2">
@@ -124,7 +123,7 @@ export function ItemDetail({
           </div>
         )}
 
-        <p className="mt-auto pt-6 text-[11.5px] dim">Added {relativeTime(item.createdAt)}</p>
+        <p className="mt-auto pt-6 text-[11.5px] dim" suppressHydrationWarning>Added {relativeTime(item.createdAt)}</p>
       </div>
     </div>
   );

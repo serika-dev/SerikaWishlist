@@ -23,7 +23,7 @@ export default async function ImportPage({ searchParams }: { searchParams: Promi
       </p>
       <div className="mt-10">
         <ImportFlow
-          lists={lists.map((l) => ({ id: l.id, title: l.title, emoji: l.emoji }))}
+          lists={lists.map((l) => ({ id: l.id, title: l.title }))}
           defaultTarget={typeof into === 'string' ? into : undefined}
           bookmarklet={bookmarkletCode(config.BASE_URL)}
           initialUrl={typeof url === 'string' ? url.slice(0, 2048) : ''}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Gift } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { FriendButton } from '@/components/FriendButton';
 import { ListCard } from '@/components/ListCard';
@@ -44,7 +45,7 @@ export default async function ProfilePage({ params }: Props) {
       </header>
       {lists.length === 0 ? (
         <div className="mt-12 card p-10 text-center">
-          <p className="text-4xl">🌙</p>
+          <Gift size={36} strokeWidth={1.5} className="mx-auto text-[var(--color-violet-lift)]" />
           <p className="mt-3 muted">
             {isSelf
               ? 'None of your wishlists are public or friends-only yet. Change who can see a list in its settings.'

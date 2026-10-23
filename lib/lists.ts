@@ -35,6 +35,7 @@ interface ListRow {
   preview_images?: string[] | null;
   total_amount?: string | null;
   total_currency?: string | null;
+  totals?: Record<string, string | number> | null;
 }
 
 function mapList(row: ListRow): Wishlist {
@@ -58,6 +59,7 @@ function mapList(row: ListRow): Wishlist {
       row.total_amount && row.total_currency
         ? { amount: Number(row.total_amount), currency: row.total_currency }
         : null,
+    totals: row.totals ? Object.fromEntries(Object.entries(row.totals).map(([c, v]) => [c, Number(v)])) : undefined,
   };
 }
 
@@ -110,14 +112,21 @@ const LIST_SUMMARY = `
   (SELECT COUNT(*)::int FROM items i WHERE i.wishlist_id = w.id) AS item_count,
   ARRAY(SELECT i.image_url FROM items i WHERE i.wishlist_id = w.id AND i.image_url IS NOT NULL
         ORDER BY i.priority DESC, i.position ASC LIMIT 4) AS preview_images,
-  t.total_amount, t.total_currency`;
+  t.total_amount, t.total_currency, tt.totals`;
 
 const LIST_TOTAL_JOIN = `
   LEFT JOIN LATERAL (
     SELECT SUM(i.price * i.quantity) AS total_amount, i.currency AS total_currency
     FROM items i WHERE i.wishlist_id = w.id AND i.price IS NOT NULL AND i.received_at IS NULL
     GROUP BY i.currency ORDER BY COUNT(*) DESC LIMIT 1
-  ) t ON TRUE`;
+  ) t ON TRUE
+  LEFT JOIN LATERAL (
+    SELECT jsonb_object_agg(x.currency, x.amount) AS totals FROM (
+      SELECT COALESCE(i.currency, 'EUR') AS currency, SUM(i.price * i.quantity) AS amount
+      FROM items i WHERE i.wishlist_id = w.id AND i.price IS NOT NULL AND i.received_at IS NULL
+      GROUP BY 1
+    ) x
+  ) tt ON TRUE`;
 
 // ---------------------------------------------------------------------------
 // Permissions

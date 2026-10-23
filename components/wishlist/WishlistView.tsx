@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bookmark, Globe, Link2, Lock, Plus, Settings2, Sparkles, Users } from 'lucide-react';
+import { Bookmark, Gift, Globe, Link2, Lock, Plus, Settings2, Users } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { Modal } from '@/components/Modal';
 import { ShareButton } from '@/components/ShareButton';
 import { useToast } from '@/components/Toaster';
-import { formatMoney, plural } from '@/lib/format';
+import { CurrencyPicker, useMoney } from '@/components/Money';
+import { plural } from '@/lib/format';
 import type { Item, Wishlist } from '@/lib/types';
 import { ItemCard } from './ItemCard';
 import { ItemDetail } from './ItemDetail';
@@ -87,6 +88,7 @@ export function WishlistView({
   const router = useRouter();
   const search = useSearchParams();
   const { toast } = useToast();
+  const money = useMoney();
 
   useEffect(() => setItems(initialItems), [initialItems]);
   useEffect(() => setList(initialList), [initialList]);
@@ -100,22 +102,15 @@ export function WishlistView({
   const defaultCurrency = useMemo(() => {
     const counts = new Map<string, number>();
     for (const i of items) if (i.currency) counts.set(i.currency, (counts.get(i.currency) || 0) + 1);
-    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || 'EUR';
-  }, [items]);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || money.prefs.currency;
+  }, [items, money.prefs.currency]);
 
   const stats = useMemo(() => {
     const open = items.filter((i) => !i.receivedAt);
-    // Total in the currency most wishes use; other currencies are hinted with a "+".
-    const byCurrency = new Map<string, { sum: number; n: number }>();
-    for (const i of open) {
-      if (i.price === null) continue;
-      const key = i.currency || 'EUR';
-      const entry = byCurrency.get(key) ?? { sum: 0, n: 0 };
-      byCurrency.set(key, { sum: entry.sum + i.price * i.quantity, n: entry.n + 1 });
-    }
-    const main = [...byCurrency.entries()].sort((a, b) => b[1].n - a[1].n)[0];
-    return { count: items.length, received: items.length - open.length, total: main ? formatMoney(main[1].sum, main[0]) : null, mixed: byCurrency.size > 1 };
-  }, [items]);
+    // Everything still wished for, converted into the viewer's currency.
+    const total = money.total(open.filter((i) => i.price !== null).map((i) => ({ amount: i.price! * i.quantity, currency: i.currency })));
+    return { count: items.length, received: items.length - open.length, total };
+  }, [items, money]);
 
   const api = useCallback(
     async (url: string, method: string, body?: unknown) => {
@@ -184,7 +179,7 @@ export function WishlistView({
     try {
       const { item } = await api(`/api/items/${id}`, 'PATCH', patch);
       setItems((current) => current.map((i) => (i.id === id ? { ...i, ...item } : i)));
-      if (patch.received === true) toast('Yay! Marked as received. 🎉', 'success');
+      if (patch.received === true) toast('Marked as received.', 'success');
     } catch (error) {
       toast((error as Error).message, 'error');
     } finally {
@@ -286,8 +281,8 @@ export function WishlistView({
 
       <header className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="min-w-0 enter">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[44px] leading-none drop-shadow-[0_10px_30px_rgba(139,92,246,0.45)]">{list.emoji}</span>
+          {(owner || list.source) && (
+          <div className="flex items-center gap-3 flex-wrap mb-4">
             {owner && (
               <Link href={`/u/${encodeURIComponent(owner.username)}`} className="inline-flex items-center gap-2 text-[13px] muted hover:text-white">
                 <Avatar user={owner} size={24} /> {owner.displayName || owner.username}
@@ -297,12 +292,13 @@ export function WishlistView({
               <span className="chip">Imported from {SOURCE_LABEL[list.source] ?? list.source}</span>
             )}
           </div>
-          <h1 className="display text-[38px] sm:text-[58px] mt-4 break-words">{list.title}</h1>
+          )}
+          <h1 className="display text-[38px] sm:text-[58px] break-words">{list.title}</h1>
           <span className="bar mt-5" />
           {list.description && <p className="mt-5 max-w-2xl muted whitespace-pre-line">{list.description}</p>}
           <p className="mt-4 text-[13px] dim flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{plural(stats.count, 'wish', 'wishes')}</span>
-            {stats.total && <span>· {stats.total}{stats.mixed ? ' +' : ''} to go</span>}
+            {stats.total && <span className="tnum">· {stats.total} to go</span>}
             {stats.received > 0 && <span>· {stats.received} received</span>}
             {isOwner && (
               <span className="inline-flex items-center gap-1">
@@ -326,7 +322,7 @@ export function WishlistView({
 
       {isOwner && (
         <form onSubmit={quickAdd} className="mt-9 card corner p-2 flex items-center gap-2 glow-card">
-          <Sparkles size={18} className="ml-3 text-[var(--color-violet-lift)] shrink-0 hidden sm:block" />
+          <Plus size={18} className="ml-3 dim shrink-0 hidden sm:block" />
           <input
             ref={quickRef}
             className="field !border-0 !bg-transparent !shadow-none !h-12 text-[15px]"
@@ -363,13 +359,16 @@ export function WishlistView({
               </button>
             ))}
           </div>
-          {isOwner && sort === 'custom' && items.length > 1 && <p className="text-[12px] dim hidden sm:block">Drag to reorder. Most wanted stays on top.</p>}
+          <div className="flex items-center gap-4">
+            {isOwner && sort === 'custom' && items.length > 1 && <p className="text-[12px] dim hidden lg:block">Drag to reorder. Most wanted stays on top.</p>}
+            <CurrencyPicker />
+          </div>
         </div>
       )}
 
       {items.length === 0 ? (
         <div className="mt-10 card p-10 sm:p-14 text-center">
-          <div className="text-5xl">{list.emoji}</div>
+          <Gift size={40} strokeWidth={1.5} className="mx-auto text-[var(--color-violet-lift)]" />
           <h2 className="display text-[26px] mt-4">{isOwner ? 'Add your first wish' : 'Nothing here yet'}</h2>
           <p className="muted mt-2 max-w-md mx-auto">
             {isOwner

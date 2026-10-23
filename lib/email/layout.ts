@@ -151,15 +151,15 @@ ${preheader}
 }
 
 /**
- * A short run of wishlists as plain lines (emoji, linked title, item count),
+ * A short run of wishlists as plain lines (linked title, item count),
  * in keeping with the no-boxes rule above.
  */
-export function emailListLines(lists: { emoji: string; title: string; url: string; itemCount: number }[]): string {
+export function emailListLines(lists: { title: string; url: string; itemCount: number }[]): string {
   if (lists.length === 0) return '';
   const lines = lists
     .map(
       (list) =>
-        `<div style="margin:0 0 8px 0; font-family:${BODY_FONT}; font-size:16px; line-height:24px; color:${COLORS.text};">${escapeHtml(list.emoji)}&nbsp;&nbsp;<a href="${escapeHtml(list.url)}" style="color:#ffffff; font-weight:700; text-decoration:none;">${escapeHtml(list.title)}</a><span style="color:${COLORS.muted};">&nbsp;&nbsp;·&nbsp;&nbsp;${list.itemCount} ${list.itemCount === 1 ? 'wish' : 'wishes'}</span></div>`
+        `<div style="margin:0 0 8px 0; font-family:${BODY_FONT}; font-size:16px; line-height:24px; color:${COLORS.text};"><a href="${escapeHtml(list.url)}" style="color:#ffffff; font-weight:700; text-decoration:none;">${escapeHtml(list.title)}</a><span style="color:${COLORS.muted};">&nbsp;&nbsp;·&nbsp;&nbsp;${list.itemCount} ${list.itemCount === 1 ? 'wish' : 'wishes'}</span></div>`
     )
     .join('');
   return `<div style="margin:22px 0 0 0; padding:4px 0 0 14px; border-left:2px solid ${COLORS.accentStrong};">${lines}</div>`;

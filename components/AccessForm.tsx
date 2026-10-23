@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { MailCheck, Sparkles } from 'lucide-react';
+import { Mail, MailCheck } from 'lucide-react';
 import { AccountsAuthShell, AuthHeader, FormAlert } from './AccountsAuthShell';
 
 /**
@@ -64,7 +64,7 @@ export function AccessForm({
   return (
     <AccountsAuthShell>
       <AuthHeader
-        icon={<Sparkles size={36} />}
+        icon={<Mail size={36} />}
         title={hasUnsavedLists ? 'Save Your Wishlist' : 'Your Wishlists'}
         subtitle={
           hasUnsavedLists

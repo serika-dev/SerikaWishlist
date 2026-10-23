@@ -41,6 +41,8 @@ export interface Wishlist {
   itemCount?: number;
   previewImages?: string[];
   totalValue?: { amount: number; currency: string } | null;
+  /** Unreceived wishes' value per currency, for totals in the viewer's currency. */
+  totals?: Record<string, number>;
 }
 
 export interface Item {

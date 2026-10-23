@@ -6,7 +6,9 @@ import { Bookmark, Check, ExternalLink, Star } from 'lucide-react';
 import { ImportReview, type ImportPayload } from '@/components/import/ImportReview';
 import { ItemImage } from '@/components/wishlist/ItemImage';
 import { unfurl } from '@/components/wishlist/ItemEditor';
-import { cleanPrice, COMMON_CURRENCIES, currencyFromSymbol } from '@/lib/currency';
+import { useMoney } from '@/components/Money';
+import { cleanPrice, currencyFromSymbol } from '@/lib/currency';
+import { DISPLAY_CURRENCIES } from '@/lib/money';
 import { hostOf } from '@/lib/format';
 import type { ItemDraft } from '@/lib/types';
 import { Wordmark } from './Wordmark';
@@ -21,7 +23,6 @@ interface ListOption {
   id: string;
   slug: string;
   title: string;
-  emoji: string;
 }
 
 interface ProductDraft {
@@ -92,6 +93,7 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const received = useRef(false);
+  const money = useMoney();
 
   const accept = useCallback(async (payload: Record<string, unknown>) => {
     if (received.current) return;
@@ -200,7 +202,7 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
     fetch('/api/lists')
       .then((r) => r.json())
       .then((data) => {
-        const options: ListOption[] = (data.lists || []).map((l: ListOption) => ({ id: l.id, slug: l.slug, title: l.title, emoji: l.emoji }));
+        const options: ListOption[] = (data.lists || []).map((l: ListOption) => ({ id: l.id, slug: l.slug, title: l.title }));
         setLists(options);
         setSignedIn(Boolean(data.signedIn));
         setTarget((t) => t || options[0]?.id || 'new');
@@ -290,7 +292,6 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
 
         {phase.name === 'error' && (
           <div className="py-12 text-center">
-            <p className="text-4xl">🫥</p>
             <p className="mt-4 muted text-[14px]">{phase.message}</p>
             <button type="button" className="btn btn-ghost mt-6" onClick={() => window.close()}>Close</button>
           </div>
@@ -322,9 +323,15 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
                 <div className="mt-3 grid grid-cols-[1fr_96px] gap-2">
                   <input className="field tnum" inputMode="decimal" placeholder="Price" value={phase.draft.price} onChange={(e) => setPhase({ ...phase, draft: { ...phase.draft, price: e.target.value } })} />
                   <select className="field" value={phase.draft.currency} onChange={(e) => setPhase({ ...phase, draft: { ...phase.draft, currency: e.target.value } })}>
-                    {[...new Set([phase.draft.currency, ...COMMON_CURRENCIES])].map((c) => <option key={c}>{c}</option>)}
+                    {[...new Set([phase.draft.currency, ...DISPLAY_CURRENCIES])].map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
+                {(() => {
+                  const shown = money.price(cleanPrice(phase.draft.price), phase.draft.currency);
+                  return shown?.converted ? (
+                    <p className="mt-1.5 text-[12px] muted tnum">≈ <b className="text-[var(--color-violet-lift)]">{shown.local}</b> for you</p>
+                  ) : null;
+                })()}
                 <input className="field mt-2" placeholder="Note: size, colour… (optional)" maxLength={1000} value={phase.draft.note} onChange={(e) => setPhase({ ...phase, draft: { ...phase.draft, note: e.target.value } })} />
                 <button
                   type="button"
@@ -339,7 +346,7 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
             <div>
               <label className="field-label" htmlFor="clip-target">Add to</label>
               <select id="clip-target" className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
-                {lists.map((l) => <option key={l.id} value={l.id}>{l.emoji} {l.title}</option>)}
+                {lists.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}
                 <option value="new">＋ New wishlist…</option>
               </select>
               {target === 'new' && (

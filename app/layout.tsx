@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import './globals.css';
+import { MoneyProvider } from '@/components/Money';
 import { ToastProvider } from '@/components/Toaster';
 import { config } from '@/lib/config';
+import { getMoneyPrefs } from '@/lib/money-server';
+import { getRates } from '@/lib/rates';
 
 /** Outfit is Serika's brand typeface (serika.moe/brand); it carries everything here. */
 const outfit = Outfit({
@@ -35,12 +38,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [prefs, rates] = await Promise.all([getMoneyPrefs(), getRates()]);
   return (
     <html lang="en" className={outfit.variable}>
       <body>
         <div className="sky" aria-hidden="true" />
-        <ToastProvider>{children}</ToastProvider>
+        <MoneyProvider prefs={prefs} rates={rates}>
+          <ToastProvider>{children}</ToastProvider>
+        </MoneyProvider>
       </body>
     </html>
   );

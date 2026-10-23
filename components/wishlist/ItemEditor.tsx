@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, Star } from 'lucide-react';
-import { COMMON_CURRENCIES, currencyFromSymbol } from '@/lib/currency';
+import { Download, Star } from 'lucide-react';
+import { currencyFromSymbol } from '@/lib/currency';
+import { DISPLAY_CURRENCIES } from '@/lib/money';
+import { useMoney } from '@/components/Money';
+import { cleanPrice } from '@/lib/currency';
 import { hostOf } from '@/lib/format';
 import { ItemImage } from './ItemImage';
 
@@ -58,6 +61,9 @@ export function ItemEditor({
   const [busy, setBusy] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [hint, setHint] = useState('');
+  const money = useMoney();
+  const typed = cleanPrice(values.price);
+  const preview = typed !== null ? money.price(typed, values.currency) : null;
   const set = <K extends keyof ItemFormValues>(key: K, value: ItemFormValues[K]) => setValues((v) => ({ ...v, [key]: value }));
 
   const fetchDetails = async () => {
@@ -91,7 +97,7 @@ export function ItemEditor({
 
   const onPriceBlur = () => {
     const guessed = currencyFromSymbol(values.price, hostOf(values.url));
-    if (guessed && COMMON_CURRENCIES.includes(guessed)) set('currency', guessed);
+    if (guessed && DISPLAY_CURRENCIES.includes(guessed)) set('currency', guessed);
   };
 
   return (
@@ -101,7 +107,7 @@ export function ItemEditor({
         <div className="flex gap-2">
           <input id="item-url" className="field" type="url" inputMode="url" placeholder="https://store.example/product" value={values.url} onChange={(e) => set('url', e.target.value)} />
           <button type="button" className="btn btn-ghost shrink-0 !h-[44px]" onClick={fetchDetails} disabled={!values.url.trim() || fetching} title="Fill in from the link">
-            {fetching ? <span className="spinner" /> : <Sparkles size={16} />} <span className="hidden sm:inline">Fetch</span>
+            {fetching ? <span className="spinner" /> : <Download size={16} />} <span className="hidden sm:inline">Fetch</span>
           </button>
         </div>
         {hint && <p className="field-note !text-[var(--color-warn)]">{hint}</p>}
@@ -125,7 +131,7 @@ export function ItemEditor({
         <div>
           <label className="field-label" htmlFor="item-currency">Currency</label>
           <select id="item-currency" className="field" value={values.currency} onChange={(e) => set('currency', e.target.value)}>
-            {[...new Set([values.currency, ...COMMON_CURRENCIES])].filter(Boolean).map((c) => (
+            {[...new Set([values.currency, ...DISPLAY_CURRENCIES])].filter(Boolean).map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -135,6 +141,18 @@ export function ItemEditor({
           <input id="item-qty" className="field tnum" type="number" min={1} max={999} value={values.quantity} onChange={(e) => set('quantity', Math.max(1, Number(e.target.value) || 1))} />
         </div>
       </div>
+
+      {preview && (
+        <p className="-mt-2 text-[12.5px] muted tnum" aria-live="polite">
+          {preview.converted ? (
+            <>
+              {preview.original} is about <b className="text-[var(--color-violet-lift)]">{preview.local}</b> at today’s rate. You set the price in the store’s currency; everyone sees it in theirs too.
+            </>
+          ) : (
+            <>Shown as <b className="text-[var(--color-violet-lift)]">{preview.local}</b>. People elsewhere see it converted into their own currency.</>
+          )}
+        </p>
+      )}
 
       <div>
         <label className="field-label" htmlFor="item-image">Photo link</label>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Bookmark, Import } from 'lucide-react';
+import { Bookmark, Gift, Import } from 'lucide-react';
 import { GuestBanner } from '@/components/GuestBanner';
 import { ListCard } from '@/components/ListCard';
 import { NewListButton } from '@/components/NewListButton';
@@ -49,7 +49,7 @@ export default async function ListsPage() {
 
       {lists.length === 0 ? (
         <div className="mt-12 card corner p-10 sm:p-16 text-center">
-          <div className="text-6xl">🎁</div>
+          <Gift size={44} strokeWidth={1.5} className="mx-auto text-[var(--color-violet-lift)]" />
           <h2 className="display text-[30px] mt-5">Nothing wished for yet</h2>
           <p className="muted mt-3 max-w-md mx-auto">
             Start a list, import one from Throne, MyWishlist or Wishlist.com, or grab the bookmarklet and add things

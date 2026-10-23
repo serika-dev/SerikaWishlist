@@ -9,9 +9,8 @@
   </defs>
   <rect width="100" height="100" rx="22.5" fill="url(#bg)"/>
   <rect width="100" height="100" rx="22.5" fill="url(#lit)"/>
-  <g transform="translate(50 50) skewX(-10) translate(-50 -50)">
-    <path d="M50 20 C53 40 60 47 80 50 C60 53 53 60 50 80 C47 60 40 53 20 50 C40 47 47 40 50 20Z" fill="#1A0538" transform="translate(0 3.3)"/>
-    <path d="M50 20 C53 40 60 47 80 50 C60 53 53 60 50 80 C47 60 40 53 20 50 C40 47 47 40 50 20Z" fill="#ffffff"/>
-    <circle cx="71" cy="28" r="5" fill="#C4B5FD"/>
+  <g transform="translate(50 50) skewX(-10) translate(-50 -50)" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="11">
+    <path d="M23 31 L35.5 69 L50 40 L64.5 69 L77 31" stroke="#1A0538" transform="translate(0 3.3)"/>
+    <path d="M23 31 L35.5 69 L50 40 L64.5 69 L77 31" stroke="#ffffff"/>
   </g>
 </svg>

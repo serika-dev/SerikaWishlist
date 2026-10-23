@@ -1,7 +1,8 @@
 'use client';
 
 import { Check, GripVertical, Star } from 'lucide-react';
-import { formatMoney, hostOf } from '@/lib/format';
+import { Price } from '@/components/Money';
+import { hostOf } from '@/lib/format';
 import type { Item } from '@/lib/types';
 import { ItemImage } from './ItemImage';
 
@@ -71,13 +72,9 @@ export function ItemCard({
         <p className="text-[11px] font-bold uppercase tracking-[0.12em] dim truncate">{store || 'Wish'}</p>
         <h3 className="mt-1 font-semibold text-[14.5px] leading-snug clamp-2">{item.title}</h3>
         {item.note && <p className="mt-1.5 text-[12.5px] dim clamp-2">{item.note}</p>}
-        <div className="mt-auto pt-3 flex items-baseline gap-2">
-          {item.price !== null ? (
-            <span className="font-extrabold text-[16px] text-[var(--color-violet-lift)] tnum">{formatMoney(item.price, item.currency)}</span>
-          ) : (
-            <span className="text-[13px] dim">No price</span>
-          )}
-          {item.quantity > 1 && <span className="text-[12px] dim">× {item.quantity}</span>}
+        <div className="mt-auto pt-3 flex items-start justify-between gap-2">
+          <Price amount={item.price} currency={item.currency} />
+          {item.quantity > 1 && <span className="text-[12px] dim pt-0.5">× {item.quantity}</span>}
         </div>
       </div>
     </article>

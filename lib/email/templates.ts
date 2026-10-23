@@ -8,7 +8,6 @@ export interface EmailMessage {
 }
 
 interface ListSummary {
-  emoji: string;
   title: string;
   slug: string;
   itemCount: number;
@@ -22,7 +21,7 @@ function listUrl(slug: string): string {
 }
 
 function textLists(lists: ListSummary[]): string {
-  return lists.map((l) => `  ${l.emoji} ${l.title} (${l.itemCount}) — ${listUrl(l.slug)}`).join('\n');
+  return lists.map((l) => `  ${l.title} (${l.itemCount}) — ${listUrl(l.slug)}`).join('\n');
 }
 
 /**
@@ -38,7 +37,7 @@ export function magicLinkEmail(input: {
 }): EmailMessage {
   const { link, lists, firstSave, accountUsername } = input;
   const brandLists = emailListLines(
-    lists.map((l) => ({ emoji: l.emoji, title: l.title, url: listUrl(l.slug), itemCount: l.itemCount }))
+    lists.map((l) => ({ title: l.title, url: listUrl(l.slug), itemCount: l.itemCount }))
   );
   const expiry = `The button works once and expires in ${HOURS} hours. After that, the device you open it on stays signed in for 30 days. Didn't ask for this? Ignore it and nothing changes.`;
 

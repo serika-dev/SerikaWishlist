@@ -20,7 +20,7 @@ export function ImportFlow({
   bookmarklet,
   initialUrl = '',
 }: {
-  lists: Pick<Wishlist, 'id' | 'title' | 'emoji'>[];
+  lists: Pick<Wishlist, 'id' | 'title'>[];
   defaultTarget?: string;
   bookmarklet: string;
   initialUrl?: string;

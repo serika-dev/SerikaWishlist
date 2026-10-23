@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { Check, Import } from 'lucide-react';
 import { ItemImage } from '@/components/wishlist/ItemImage';
-import { formatMoney, hostOf } from '@/lib/format';
+import { useMoney } from '@/components/Money';
+import { hostOf } from '@/lib/format';
 import type { ItemDraft, Wishlist } from '@/lib/types';
 
 export interface ImportPayload {
@@ -28,12 +29,13 @@ export function ImportReview({
   onRelated,
 }: {
   imported: ImportPayload;
-  lists: Pick<Wishlist, 'id' | 'title' | 'emoji'>[];
+  lists: Pick<Wishlist, 'id' | 'title'>[];
   defaultTarget?: string;
   compact?: boolean;
   onImported: (result: { slug: string; title: string; added: number }) => void;
   onRelated?: (url: string) => void;
 }) {
+  const money = useMoney();
   const [title, setTitle] = useState(imported.title);
   const [target, setTarget] = useState(lists.some((l) => l.id === defaultTarget) ? defaultTarget : 'new');
   const [skipped, setSkipped] = useState<Set<number>>(new Set());
@@ -90,7 +92,7 @@ export function ImportReview({
             <option value="new">A new wishlist</option>
             {lists.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.emoji} {l.title}
+                {l.title}
               </option>
             ))}
           </select>
@@ -128,7 +130,7 @@ export function ImportReview({
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-semibold leading-snug clamp-2">{item.title}</span>
                   <span className="block text-[11.5px] dim mt-0.5 truncate">
-                    {item.price !== null && item.price !== undefined ? <b className="text-[var(--color-violet-lift)]">{formatMoney(Number(item.price), item.currency)}</b> : 'No price'}
+                    {money.price(item.price, item.currency) ? <b className="text-[var(--color-violet-lift)]">{money.price(item.price, item.currency)!.local}</b> : 'No price'}
                     {(item.store || hostOf(item.url)) && <> · {item.store || hostOf(item.url)}</>}
                   </span>
                 </span>

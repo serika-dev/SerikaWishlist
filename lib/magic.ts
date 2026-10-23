@@ -94,7 +94,7 @@ export async function requestMagicLink(input: {
 
   const message = magicLinkEmail({
     link: `${config.BASE_URL}/magic/${raw}`,
-    lists: lists.map((l) => ({ emoji: l.emoji, title: l.title, slug: l.slug, itemCount: l.item_count })),
+    lists: lists.map((l) => ({ title: l.title, slug: l.slug, itemCount: l.item_count })),
     firstSave: !existingGuest && !account,
     accountUsername: account?.username ?? null,
   });

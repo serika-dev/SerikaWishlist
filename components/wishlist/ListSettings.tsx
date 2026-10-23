@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { Globe, Link2, Lock, Trash2, Users } from 'lucide-react';
 import type { Visibility, Wishlist } from '@/lib/types';
 
-const EMOJIS = ['🎁', '🎂', '🎄', '💜', '✨', '👑', '🎮', '📚', '🧸', '🎧', '👗', '👟', '💄', '🏠', '🖥️', '📷', '🎨', '🎸', '🌸', '🍜', '✈️', '⛺', '🐱', '🌙'];
-
 const VISIBILITY: { value: Visibility; icon: typeof Globe; label: string; help: string }[] = [
   { value: 'unlisted', icon: Link2, label: 'Link only', help: 'Anyone with the link can see it.' },
   { value: 'friends', icon: Users, label: 'Friends', help: 'Only your Serika friends, the same friends as on SerikaCord.' },
@@ -16,7 +14,6 @@ const VISIBILITY: { value: Visibility; icon: typeof Globe; label: string; help: 
 export interface ListSettingsValues {
   title: string;
   description: string;
-  emoji: string;
   visibility: Visibility;
   showReservations: boolean;
 }
@@ -37,7 +34,6 @@ export function ListSettings({
   const [values, setValues] = useState<ListSettingsValues>({
     title: list.title,
     description: list.description,
-    emoji: list.emoji,
     visibility: list.visibility,
     showReservations: list.showReservations,
   });
@@ -56,23 +52,6 @@ export function ListSettings({
       <div>
         <label className="field-label" htmlFor="list-title">Name</label>
         <input id="list-title" className="field" required maxLength={80} value={values.title} onChange={(e) => set('title', e.target.value)} />
-      </div>
-
-      <div>
-        <span className="field-label">Icon</span>
-        <div className="grid grid-cols-8 sm:grid-cols-12 gap-1.5">
-          {EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => set('emoji', emoji)}
-              aria-pressed={values.emoji === emoji}
-              className={`h-10 rounded-[3px] text-[20px] border transition ${values.emoji === emoji ? 'border-[var(--color-violet)] bg-[var(--color-violet)]/15' : 'border-transparent hover:bg-white/5'}`}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div>

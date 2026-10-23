@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Gift, Users } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { FriendsPanel } from '@/components/FriendsPanel';
 import { ListCard } from '@/components/ListCard';
@@ -17,7 +18,7 @@ export default async function FriendsPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-[720px] px-4 sm:px-6 pt-16 text-center">
-        <p className="text-6xl">💜</p>
+        <Users size={44} strokeWidth={1.5} className="mx-auto text-[var(--color-violet-lift)]" />
         <h1 className="display text-[40px] sm:text-[52px] mt-5">Wish with <span className="text-[var(--color-violet)]">friends</span></h1>
         <p className="muted mt-4">
           Friends are your Serika friends, the same ones you have on SerikaCord. Sign in to see their wishlists and share
@@ -43,7 +44,7 @@ export default async function FriendsPage() {
         <div>
           {feed.length === 0 ? (
             <div className="card p-10 text-center">
-              <p className="text-5xl">🎁</p>
+              <Gift size={40} strokeWidth={1.5} className="mx-auto text-[var(--color-violet-lift)]" />
               <p className="mt-4 font-bold">No lists from friends yet</p>
               <p className="mt-1 text-[13.5px] muted">When your friends share wishlists as Public or Friends, they show up here.</p>
             </div>
