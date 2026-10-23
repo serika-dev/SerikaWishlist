@@ -19,8 +19,6 @@ import { ListSettings, type ListSettingsValues } from './ListSettings';
 
 type Sort = 'custom' | 'priceAsc' | 'priceDesc' | 'newest';
 
-const SOURCE_LABEL: Record<string, string> = { throne: 'Throne', mywishlist: 'MyWishlist', wishlistcom: 'Wishlist.com', page: 'the web' };
-
 interface OwnerInfo {
   username: string;
   displayName: string | null;
@@ -286,17 +284,10 @@ export function WishlistView({
 
       <header className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="min-w-0 enter">
-          {(owner || list.source) && (
-          <div className="flex items-center gap-3 flex-wrap mb-4">
-            {owner && (
-              <Link href={`/u/${encodeURIComponent(owner.username)}`} className="inline-flex items-center gap-2 text-[13px] muted hover:text-white">
-                <Avatar user={owner} size={24} /> {owner.displayName || owner.username}
-              </Link>
-            )}
-            {list.source && (
-              <span className="chip">Imported from {SOURCE_LABEL[list.source] ?? list.source}</span>
-            )}
-          </div>
+          {owner && (
+            <Link href={`/u/${encodeURIComponent(owner.username)}`} className="mb-4 inline-flex items-center gap-2 text-[13px] muted hover:text-white">
+              <Avatar user={owner} size={24} /> {owner.displayName || owner.username}
+            </Link>
           )}
           <div className="flex items-center gap-4 sm:gap-5">
             {list.iconUrl && (
