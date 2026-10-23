@@ -13,7 +13,7 @@ export function SiteFooter() {
           <Link href="/bookmarklet" className="hover:text-white">Bookmarklet</Link>
           <Link href="/import" className="hover:text-white">Import</Link>
           <a href="https://serika.moe" className="hover:text-white">serika.moe</a>
-          <a href="https://issues.serika.dev" className="hover:text-white">Report a bug</a>
+          <a href="https://issues.serika.dev/issues/new?project=serika-wishlist" className="hover:text-white">Report a bug</a>
           <a href="https://discord.gg/5s2zgwn35y" className="hover:text-white">Discord</a>
         </nav>
       </div>

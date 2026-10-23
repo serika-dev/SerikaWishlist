@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, Bookmark, EyeOff, Import, Mail, MousePointerClick, Share2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { Bento, Steps, StoreMarquee } from '@/components/home/Sections';
 import { NewListButton } from '@/components/NewListButton';
 import { listsForViewer } from '@/lib/lists';
 import { getViewer } from '@/lib/viewer';
@@ -54,36 +55,6 @@ function HeroMock() {
   );
 }
 
-function Feature({
-  number,
-  icon,
-  title,
-  children,
-  action,
-}: {
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <section className="border-t border-[var(--color-line)] py-14 grid gap-6 lg:grid-cols-[240px_1fr] enter">
-      <div>
-        <div className="text-[13px] font-bold text-[var(--color-violet)] tnum">{number}</div>
-        <div className="mt-3 inline-flex h-11 w-11 items-center justify-center rounded-[4px] bg-[var(--color-night)] text-[var(--color-violet-lift)] border border-[var(--color-violet)]/30">
-          {icon}
-        </div>
-      </div>
-      <div className="max-w-2xl">
-        <h2 className="display text-[30px] sm:text-[38px]">{title}</h2>
-        <div className="mt-4 text-[16px] muted leading-relaxed space-y-3">{children}</div>
-        {action && <div className="mt-6">{action}</div>}
-      </div>
-    </section>
-  );
-}
-
 export default async function HomePage() {
   const viewer = await getViewer();
   const lists = await listsForViewer(viewer);
@@ -127,66 +98,11 @@ export default async function HomePage() {
         <HeroMock />
       </section>
 
-      <Feature
-        number="01"
-        icon={<MousePointerClick size={20} />}
-        title="Add from any store"
-        action={
-          <Link href="/bookmarklet" className="btn btn-ghost">
-            <Bookmark size={16} /> Get the bookmarklet
-          </Link>
-        }
-      >
-        <p>
-          Drag the Serika Wishlist button to your bookmarks bar. On any product page, from Amazon to a tiny figure shop
-          in Akihabara, one click grabs the name, photo and price and drops it on the list you pick.
-        </p>
-        <p>Or just paste a link. We’ll fill in the rest.</p>
-      </Feature>
+      <StoreMarquee />
+      <Steps />
+      <Bento />
 
-      <Feature number="02" icon={<Mail size={20} />} title="No account? No problem">
-        <p>
-          Start a list right now, as a guest. When you want to keep it, add your email: we send a magic link that lets
-          you edit it from any device, no password. Sessions last 30 days.
-        </p>
-        <p>
-          Make a Serika account with the same email later and every list saved under it moves into your account by
-          itself.
-        </p>
-      </Feature>
-
-      <Feature
-        number="03"
-        icon={<Import size={20} />}
-        title="Bring your old lists"
-        action={
-          <Link href="/import" className="btn btn-ghost">
-            <Import size={16} /> Import a wishlist
-          </Link>
-        }
-      >
-        <p>
-          Moving from <b className="text-white">Throne</b>, <b className="text-white">MyWishlist</b> or{' '}
-          <b className="text-white">Wishlist.com</b>? Paste the link to your list and everything comes along: names,
-          photos, prices, notes and the stores they’re from.
-        </p>
-      </Feature>
-
-      <Feature number="04" icon={<EyeOff size={20} />} title="Nobody buys it twice">
-        <p>
-          Friends can mark a wish as “I’m getting this” so nobody doubles up. You never see who reserved what unless you
-          turn spoilers on.
-        </p>
-      </Feature>
-
-      <Feature number="05" icon={<Share2 size={20} />} title="One link for everything">
-        <p>
-          Keep lists private, share them by link, or show them on your public Serika page. Birthdays, holidays, your
-          desk setup, that figure you’ve been eyeing for months.
-        </p>
-      </Feature>
-
-      <section className="relative mt-6 overflow-hidden card corner p-8 sm:p-12 text-center glow-card">
+      <section className="relative mt-24 overflow-hidden card corner p-8 sm:p-12 text-center glow-card">
         <div className="absolute inset-0 bg-[radial-gradient(60rem_20rem_at_50%_-20%,rgba(139,92,246,0.25),transparent)]" />
         <div className="relative">
           <h2 className="display text-[34px] sm:text-[52px]">
