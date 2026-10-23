@@ -9,6 +9,7 @@ import { Modal } from '@/components/Modal';
 import { ShareButton } from '@/components/ShareButton';
 import { useToast } from '@/components/Toaster';
 import { CurrencyPicker, useMoney } from '@/components/Money';
+import { convert } from '@/lib/money';
 import { plural } from '@/lib/format';
 import type { Item, Wishlist } from '@/lib/types';
 import { ItemCard } from './ItemCard';
@@ -26,14 +27,14 @@ interface OwnerInfo {
   avatar: string | null;
 }
 
-function sortItems(items: Item[], sort: Sort): Item[] {
+function sortItems(items: Item[], sort: Sort, value: (item: Item) => number | null): Item[] {
   const list = [...items];
   const doneLast = (a: Item, b: Item) => Number(Boolean(a.receivedAt)) - Number(Boolean(b.receivedAt));
   switch (sort) {
     case 'priceAsc':
-      return list.sort((a, b) => doneLast(a, b) || (a.price ?? Infinity) - (b.price ?? Infinity));
+      return list.sort((a, b) => doneLast(a, b) || (value(a) ?? Infinity) - (value(b) ?? Infinity));
     case 'priceDesc':
-      return list.sort((a, b) => doneLast(a, b) || (b.price ?? -1) - (a.price ?? -1));
+      return list.sort((a, b) => doneLast(a, b) || (value(b) ?? -1) - (value(a) ?? -1));
     case 'newest':
       return list.sort((a, b) => doneLast(a, b) || b.createdAt.localeCompare(a.createdAt));
     default:
@@ -97,7 +98,11 @@ export function WishlistView({
   }, [isOwner, search]);
 
   const revealReservations = !isOwner || list.showReservations;
-  const sorted = useMemo(() => sortItems(items, sort), [items, sort]);
+  // Price sorts compare what things cost in the viewer's currency, not the raw numbers.
+  const sorted = useMemo(
+    () => sortItems(items, sort, (i) => (i.price === null ? null : convert(i.price, i.currency, money.prefs.currency, money.rates) ?? i.price)),
+    [items, sort, money]
+  );
   const openItem = items.find((i) => i.id === openId) ?? null;
   const defaultCurrency = useMemo(() => {
     const counts = new Map<string, number>();
