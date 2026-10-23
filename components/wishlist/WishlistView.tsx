@@ -298,7 +298,13 @@ export function WishlistView({
             )}
           </div>
           )}
-          <h1 className="display text-[38px] sm:text-[58px] break-words">{list.title}</h1>
+          <div className="flex items-center gap-4 sm:gap-5">
+            {list.iconUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={list.iconUrl} alt="" className="h-14 w-14 sm:h-[72px] sm:w-[72px] shrink-0 rounded-[12px] object-cover border border-[var(--color-line-strong)]" />
+            )}
+            <h1 className="display text-[38px] sm:text-[58px] break-words min-w-0">{list.title}</h1>
+          </div>
           <span className="bar mt-5" />
           {list.description && <p className="mt-5 max-w-2xl muted whitespace-pre-line">{list.description}</p>}
           <p className="mt-4 text-[13px] dim flex flex-wrap items-center gap-x-3 gap-y-1">

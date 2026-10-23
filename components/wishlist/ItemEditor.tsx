@@ -5,6 +5,8 @@ import { Download, Star } from 'lucide-react';
 import { currencyFromSymbol } from '@/lib/currency';
 import { DISPLAY_CURRENCIES } from '@/lib/money';
 import { useMoney } from '@/components/Money';
+import { useToast } from '@/components/Toaster';
+import { UploadButton, uploadImageFile } from '@/components/UploadButton';
 import { cleanPrice } from '@/lib/currency';
 import { hostOf } from '@/lib/format';
 import { ItemImage } from './ItemImage';
@@ -61,6 +63,22 @@ export function ItemEditor({
   const [busy, setBusy] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [hint, setHint] = useState('');
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const uploadDropped = async (file: File | undefined | null) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageFile(file, 'item');
+      setValues((v) => ({ ...v, imageUrl: url }));
+    } catch (error) {
+      toast((error as Error).message, 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
   const money = useMoney();
   const typed = cleanPrice(values.price);
   const preview = typed !== null ? money.price(typed, values.currency) : null;
@@ -101,7 +119,17 @@ export function ItemEditor({
   };
 
   return (
-    <form onSubmit={submit} className="p-5 sm:p-6 space-y-4">
+    <form
+      onSubmit={submit}
+      className="p-5 sm:p-6 space-y-4"
+      onPaste={(e) => {
+        const file = [...e.clipboardData.files].find((f) => f.type.startsWith('image/'));
+        if (file) {
+          e.preventDefault();
+          void uploadDropped(file);
+        }
+      }}
+    >
       <div>
         <label className="field-label" htmlFor="item-url">Link</label>
         <div className="flex gap-2">
@@ -114,8 +142,25 @@ export function ItemEditor({
       </div>
 
       <div className="grid grid-cols-[84px_1fr] gap-4 items-start">
-        <div className="aspect-square rounded-[4px] overflow-hidden border border-[var(--color-line)] bg-[#f4f4f6]">
-          <ItemImage src={values.imageUrl || null} alt="" store={hostOf(values.url)} className="w-full h-full object-contain p-1.5" />
+        <div
+          className={`aspect-square rounded-[4px] overflow-hidden border bg-[#f4f4f6] transition ${dragging ? 'border-[var(--color-violet)] ring-2 ring-[var(--color-violet)]/40' : 'border-[var(--color-line)]'}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            void uploadDropped(e.dataTransfer.files?.[0]);
+          }}
+          title="Drop a photo here"
+        >
+          {uploading ? (
+            <div className="w-full h-full flex items-center justify-center bg-[var(--color-raised)]"><span className="spinner" /></div>
+          ) : (
+            <ItemImage src={values.imageUrl || null} alt="" store={hostOf(values.url)} className="w-full h-full object-contain p-1.5" />
+          )}
         </div>
         <div>
           <label className="field-label" htmlFor="item-title">Name</label>
@@ -155,8 +200,12 @@ export function ItemEditor({
       )}
 
       <div>
-        <label className="field-label" htmlFor="item-image">Photo link</label>
-        <input id="item-image" className="field" type="url" placeholder="https://…/photo.jpg" value={values.imageUrl} onChange={(e) => set('imageUrl', e.target.value)} />
+        <label className="field-label" htmlFor="item-image">Photo</label>
+        <div className="flex gap-2">
+          <input id="item-image" className="field" type="url" placeholder="Paste an image link, or upload one" value={values.imageUrl} onChange={(e) => set('imageUrl', e.target.value)} />
+          <UploadButton kind="item" className="btn btn-ghost shrink-0 !h-[44px]" onUploaded={(url) => set('imageUrl', url)} />
+        </div>
+        <p className="field-note">You can also drop or paste an image onto this form.</p>
       </div>
 
       <div>

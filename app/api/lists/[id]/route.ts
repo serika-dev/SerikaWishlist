@@ -1,5 +1,6 @@
 import { fail, handler, ok, optionalEnum, readJson } from '@/lib/api';
 import { deleteList, updateList } from '@/lib/lists';
+import { isOurUpload } from '@/lib/storage';
 import { VISIBILITIES } from '@/lib/types';
 import { requireEditableList } from '@/lib/viewer';
 
@@ -20,6 +21,8 @@ export const PATCH = handler(async (request: Request, { params }: Ctx) => {
     title: typeof body.title === 'string' ? body.title : undefined,
     description: typeof body.description === 'string' ? body.description : undefined,
     emoji: typeof body.emoji === 'string' ? body.emoji : undefined,
+    // Icons must be images uploaded here; anything else is ignored.
+    iconUrl: body.iconUrl === null ? null : typeof body.iconUrl === 'string' && isOurUpload(body.iconUrl) ? body.iconUrl : undefined,
     visibility,
     showReservations: typeof body.showReservations === 'boolean' ? body.showReservations : undefined,
   });

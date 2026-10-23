@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Globe, Link2, Lock, Trash2, Users } from 'lucide-react';
+import { Gift, Globe, Link2, Lock, Trash2, Users } from 'lucide-react';
+import { UploadButton } from '@/components/UploadButton';
 import type { Visibility, Wishlist } from '@/lib/types';
 
 const VISIBILITY: { value: Visibility; icon: typeof Globe; label: string; help: string }[] = [
@@ -14,6 +15,7 @@ const VISIBILITY: { value: Visibility; icon: typeof Globe; label: string; help: 
 export interface ListSettingsValues {
   title: string;
   description: string;
+  iconUrl: string | null;
   visibility: Visibility;
   showReservations: boolean;
 }
@@ -36,6 +38,7 @@ export function ListSettings({
     description: list.description,
     visibility: list.visibility,
     showReservations: list.showReservations,
+    iconUrl: list.iconUrl,
   });
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -52,6 +55,29 @@ export function ListSettings({
       <div>
         <label className="field-label" htmlFor="list-title">Name</label>
         <input id="list-title" className="field" required maxLength={80} value={values.title} onChange={(e) => set('title', e.target.value)} />
+      </div>
+
+      <div>
+        <span className="field-label">Icon</span>
+        <div className="flex items-center gap-4">
+          <span className="h-16 w-16 shrink-0 rounded-[10px] overflow-hidden border border-[var(--color-line-strong)] bg-[var(--color-raised)] flex items-center justify-center">
+            {values.iconUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={values.iconUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Gift size={24} strokeWidth={1.5} className="text-[var(--color-violet-lift)]" />
+            )}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            <UploadButton kind="icon" label={values.iconUrl ? 'Change image' : 'Upload image'} onUploaded={(url) => set('iconUrl', url)} />
+            {values.iconUrl && (
+              <button type="button" className="btn btn-bare btn-sm" onClick={() => set('iconUrl', null)}>
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="field-note">A square image works best. JPEG, PNG, WebP or GIF, up to 5 MB.</p>
       </div>
 
       <div>

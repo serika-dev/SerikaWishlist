@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS wishlists (
   CHECK (owner_user_id IS NOT NULL OR owner_guest_id IS NOT NULL)
 );
 CREATE INDEX IF NOT EXISTS wishlists_user_idx ON wishlists (owner_user_id);
+ALTER TABLE wishlists ADD COLUMN IF NOT EXISTS icon_url TEXT;
 ALTER TABLE wishlists DROP CONSTRAINT IF EXISTS wishlists_visibility_check;
 ALTER TABLE wishlists ADD CONSTRAINT wishlists_visibility_check
   CHECK (visibility IN ('public', 'unlisted', 'friends', 'private'));

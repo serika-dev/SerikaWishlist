@@ -34,8 +34,17 @@ export function ListCard({ list, showVisibility = true }: { list: Wishlist; show
           </div>
         ) : (
           <div className="h-full flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.22),transparent_60%)]">
-            <Gift size={36} strokeWidth={1.5} className="text-[var(--color-violet-lift)]/70" />
+            {list.iconUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={list.iconUrl} alt="" className="h-20 w-20 rounded-[14px] object-cover border border-[var(--color-line-strong)] shadow-[0_12px_30px_rgba(0,0,0,0.5)]" />
+            ) : (
+              <Gift size={36} strokeWidth={1.5} className="text-[var(--color-violet-lift)]/70" />
+            )}
           </div>
+        )}
+        {images.length > 0 && list.iconUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={list.iconUrl} alt="" className="absolute left-3 bottom-3 h-10 w-10 rounded-[8px] object-cover border-2 border-[var(--color-panel)] shadow-lg" />
         )}
       </div>
       <div className="p-4 flex-1 flex flex-col">

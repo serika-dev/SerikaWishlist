@@ -25,6 +25,7 @@ interface ListRow {
   title: string;
   description: string;
   emoji: string;
+  icon_url: string | null;
   visibility: Visibility;
   show_reservations: boolean;
   source: string | null;
@@ -47,6 +48,7 @@ function mapList(row: ListRow): Wishlist {
     title: row.title,
     description: row.description,
     emoji: row.emoji,
+    iconUrl: row.icon_url ?? null,
     visibility: row.visibility,
     showReservations: row.show_reservations,
     source: row.source,
@@ -335,7 +337,7 @@ export function cleanEmoji(value: unknown): string {
 
 export async function updateList(
   id: string,
-  patch: Partial<Pick<Wishlist, 'title' | 'description' | 'emoji' | 'visibility' | 'showReservations'>>
+  patch: Partial<Pick<Wishlist, 'title' | 'description' | 'emoji' | 'iconUrl' | 'visibility' | 'showReservations'>>
 ): Promise<Wishlist | null> {
   const sets: string[] = [];
   const values: unknown[] = [id];
@@ -346,6 +348,7 @@ export async function updateList(
   if (patch.title !== undefined) add('title', patch.title.trim().slice(0, config.LIMITS.LIST_TITLE_MAX) || 'My wishlist');
   if (patch.description !== undefined) add('description', patch.description.trim().slice(0, config.LIMITS.DESCRIPTION_MAX));
   if (patch.emoji !== undefined) add('emoji', cleanEmoji(patch.emoji));
+  if (patch.iconUrl !== undefined) add('icon_url', patch.iconUrl);
   if (patch.visibility !== undefined) add('visibility', patch.visibility);
   if (patch.showReservations !== undefined) add('show_reservations', patch.showReservations);
   if (sets.length === 0) return getListById(id);

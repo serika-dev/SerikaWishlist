@@ -31,6 +31,7 @@ export async function serializeList(list: Wishlist, items: number) {
     slug: list.slug,
     title: list.title,
     emoji: list.emoji,
+    iconUrl: list.iconUrl,
     description: list.description,
     url: shareUrl(list.slug),
     itemCount: list.itemCount ?? all.length,

@@ -32,6 +32,8 @@ export interface Wishlist {
   title: string;
   description: string;
   emoji: string;
+  /** An uploaded image standing in for the list. */
+  iconUrl: string | null;
   visibility: Visibility;
   showReservations: boolean;
   source: string | null;
