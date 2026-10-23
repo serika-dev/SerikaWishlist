@@ -1,0 +1,35 @@
+{
+  "name": "serika-wishlist",
+  "version": "1.0.0",
+  "description": "Wishlists for Serika accounts and guests, with a bookmarklet and Throne / MyWishlist / Wishlist.com imports",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p ${PORT:-3710}",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3710}",
+    "typecheck": "tsc --noEmit",
+    "import": "tsx --env-file=.env scripts/import-to-account.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1156.0",
+    "lucide-react": "^1.61.0",
+    "next": "^16.4.3",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "undici": "^8.12.3",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
