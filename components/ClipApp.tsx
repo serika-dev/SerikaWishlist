@@ -104,10 +104,17 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
 
     if (payload.kind === 'product' && payload.product && typeof payload.product === 'object') {
       const draft = toDraft(payload.product as Record<string, unknown>);
-      // Pages that hide their details from scripts: let the server have a go too.
-      if (!draft.title || !draft.imageUrl) {
+      // Stores we read through their own product API (their pages are empty app shells)
+      // get the server's answer outright; for the rest, the server only fills gaps.
+      const apiStore = /(^|\.)amiami\.com$/.test(hostOf(draft.url));
+      if (apiStore || !draft.title || !draft.imageUrl) {
         const more = draft.url ? await unfurl(draft.url) : null;
-        if (more && !('error' in more)) {
+        if (more && !('error' in more) && !more.partial && apiStore) {
+          draft.title = more.values.title || draft.title;
+          draft.imageUrl = more.values.imageUrl || draft.imageUrl;
+          draft.price = more.values.price || draft.price;
+          draft.currency = more.values.currency || draft.currency;
+        } else if (more && !('error' in more)) {
           draft.title ||= more.values.title || '';
           draft.imageUrl ||= more.values.imageUrl || '';
           draft.price ||= more.values.price || '';

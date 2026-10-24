@@ -1,5 +1,6 @@
 import { config } from '../config';
-import { addItems, createList, type Owner } from '../lists';
+import { fetchProduct } from '../products';
+import { addItems, createList, sanitizeDraft, type Owner } from '../lists';
 import { transaction } from '../db';
 import type { ItemDraft, Wishlist } from '../types';
 import { importMyWishlist, isMyWishlistUrl } from './mywishlist';
@@ -30,6 +31,15 @@ export async function fetchImport(raw: string): Promise<ImportedList> {
       return importMyWishlist(url);
     case 'throne':
       return importThrone(url);
+    case 'page': {
+      // Most links pasted here that aren't lists are one product: read that first.
+      const single = await fetchProduct(url.toString()).catch(() => null);
+      const draft = single && !single.partial ? sanitizeDraft(single.product) : null;
+      if (draft) {
+        return { source, sourceUrl: url.toString(), title: 'My wishlist', description: '', ownerName: null, related: [], items: [draft], single: true };
+      }
+      return importPage(url, source);
+    }
     default:
       return importPage(url, source);
   }

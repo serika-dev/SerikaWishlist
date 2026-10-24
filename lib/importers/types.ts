@@ -19,6 +19,8 @@ export interface ImportedList {
   items: ItemDraft[];
   /** Other lists by the same person on that site, offered as follow-up imports. */
   related: { title: string; url: string }[];
+  /** A single product link rather than a list: the review screen adds it to an existing list. */
+  single?: boolean;
 }
 
 /**

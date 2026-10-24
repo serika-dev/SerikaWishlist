@@ -15,6 +15,7 @@ export interface ImportPayload {
   ownerName?: string | null;
   items: ItemDraft[];
   related?: { title: string; url: string }[];
+  single?: boolean;
 }
 
 const LABEL: Record<string, string> = { throne: 'Throne', mywishlist: 'MyWishlist', wishlistcom: 'Wishlist.com', page: 'the web' };
@@ -37,7 +38,9 @@ export function ImportReview({
 }) {
   const money = useMoney();
   const [title, setTitle] = useState(imported.title);
-  const [target, setTarget] = useState(lists.some((l) => l.id === defaultTarget) ? defaultTarget : 'new');
+  const [target, setTarget] = useState(
+    lists.some((l) => l.id === defaultTarget) ? defaultTarget : imported.single && lists[0] ? lists[0].id : 'new'
+  );
   const [skipped, setSkipped] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
