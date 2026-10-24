@@ -71,6 +71,7 @@ export function ItemCard({
       <div className="p-3.5 flex-1 flex flex-col">
         <p className="text-[11px] font-bold uppercase tracking-[0.12em] dim truncate">{store || 'Wish'}</p>
         <h3 className="mt-1 font-semibold text-[14.5px] leading-snug clamp-2">{item.title}</h3>
+        {item.variant && <span className="mt-1.5 self-start chip chip-violet !h-5 !text-[10px] max-w-full truncate">{item.variant}</span>}
         {item.note && <p className="mt-1.5 text-[12.5px] dim clamp-2">{item.note}</p>}
         <div className="mt-auto pt-3 flex items-start justify-between gap-2">
           <Price amount={item.price} currency={item.currency} />

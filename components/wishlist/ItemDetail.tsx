@@ -43,6 +43,11 @@ export function ItemDetail({
       <div className="p-6 sm:p-7 flex flex-col">
         <p className="eyebrow !text-[10.5px]">{store || 'Wish'}</p>
         <h2 className="mt-2 text-[22px] font-extrabold leading-tight">{item.title}</h2>
+        {item.variant && (
+          <p className="mt-2 text-[13px] muted">
+            Version: <span className="chip chip-violet !h-6 ml-1">{item.variant}</span>
+          </p>
+        )}
         <div className="mt-3 flex items-baseline gap-3 flex-wrap">
           {item.price !== null && <Price amount={item.price} currency={item.currency} size="lg" />}
           {item.quantity > 1 && <span className="muted text-[14px]">wants {item.quantity}</span>}

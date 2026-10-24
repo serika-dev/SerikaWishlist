@@ -51,6 +51,8 @@ export interface Item {
   id: string;
   wishlistId: string;
   title: string;
+  /** The version wished for, when a product comes in several ("Seia", "L", "Blue"). */
+  variant: string;
   url: string | null;
   imageUrl: string | null;
   price: number | null;
@@ -72,6 +74,7 @@ export interface Item {
 /** An item as it arrives from the bookmarklet, an importer or a form. */
 export interface ItemDraft {
   title: string;
+  variant?: string | null;
   url?: string | null;
   imageUrl?: string | null;
   price?: number | null;
@@ -81,4 +84,14 @@ export interface ItemDraft {
   quantity?: number | null;
   priority?: number | null;
   sourceRef?: string | null;
+}
+
+/** One version of a product as a store lists it (TOM SKUs, Shopify variants...). */
+export interface ProductVariant {
+  name: string;
+  imageUrl: string | null;
+  price: number | null;
+  currency: string | null;
+  url: string | null;
+  soldOut: boolean;
 }

@@ -39,6 +39,7 @@ export async function serializeList(list: Wishlist, items: number) {
     updatedAt: list.updatedAt,
     items: all.slice(0, items).map((item) => ({
       title: item.title,
+      variant: item.variant || null,
       imageUrl: item.imageUrl,
       price: item.price,
       currency: item.currency,

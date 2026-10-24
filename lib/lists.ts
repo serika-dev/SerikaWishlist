@@ -69,6 +69,7 @@ interface ItemRow {
   id: string;
   wishlist_id: string;
   title: string;
+  variant: string | null;
   url: string | null;
   image_url: string | null;
   price: string | null;
@@ -90,6 +91,7 @@ function mapItem(row: ItemRow): Item {
     id: row.id,
     wishlistId: row.wishlist_id,
     title: row.title,
+    variant: row.variant ?? '',
     url: row.url,
     imageUrl: row.image_url,
     price: row.price === null ? null : Number(row.price),
@@ -194,6 +196,7 @@ export function sanitizeDraft(draft: { [K in keyof ItemDraft]?: unknown }): Item
   const quantity = Math.min(999, Math.max(1, Math.round(Number(draft.quantity) || 1)));
   return {
     title,
+    variant: clip(draft.variant, 80),
     url,
     imageUrl: cleanUrl(draft.imageUrl),
     price: cleanPrice(draft.price),
@@ -448,8 +451,8 @@ export async function addItems(
     for (let index = 0; index < accepted.length; index++) {
       const d = accepted[index];
       const row = await queryOne<ItemRow>(
-        `INSERT INTO items (wishlist_id, title, url, image_url, price, currency, store, note, quantity, priority, position, source_ref)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+        `INSERT INTO items (wishlist_id, title, url, image_url, price, currency, store, note, quantity, priority, position, source_ref, variant)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
         [
           listId,
           d.title,
@@ -463,6 +466,7 @@ export async function addItems(
           d.priority ?? 0,
           start + index,
           d.sourceRef ?? null,
+          d.variant ?? '',
         ],
         db
       );
@@ -488,6 +492,7 @@ export async function updateItem(
     const title = clip(patch.title, config.LIMITS.TITLE_MAX);
     if (title) add('title', title);
   }
+  if (patch.variant !== undefined) add('variant', clip(patch.variant, 80));
   if (patch.url !== undefined) {
     const url = cleanUrl(patch.url);
     add('url', url);

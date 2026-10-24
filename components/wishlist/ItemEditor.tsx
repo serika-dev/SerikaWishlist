@@ -9,10 +9,13 @@ import { useToast } from '@/components/Toaster';
 import { UploadButton, uploadImageFile } from '@/components/UploadButton';
 import { cleanPrice } from '@/lib/currency';
 import { hostOf } from '@/lib/format';
+import { VariantPicker } from '@/components/VariantPicker';
+import type { ProductVariant } from '@/lib/types';
 import { ItemImage } from './ItemImage';
 
 export interface ItemFormValues {
   title: string;
+  variant: string;
   url: string;
   imageUrl: string;
   price: string;
@@ -23,11 +26,11 @@ export interface ItemFormValues {
 }
 
 export function emptyValues(partial: Partial<ItemFormValues> = {}, currency = 'EUR'): ItemFormValues {
-  return { title: '', url: '', imageUrl: '', price: '', currency, quantity: 1, priority: 0, note: '', ...partial };
+  return { title: '', variant: '', url: '', imageUrl: '', price: '', currency, quantity: 1, priority: 0, note: '', ...partial };
 }
 
 /** Fetch name, photo and price for a link through our server. */
-export async function unfurl(url: string): Promise<{ values: Partial<ItemFormValues>; partial: boolean } | { error: string }> {
+export async function unfurl(url: string): Promise<{ values: Partial<ItemFormValues>; variants: ProductVariant[]; partial: boolean } | { error: string }> {
   const response = await fetch('/api/unfurl', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,6 +41,7 @@ export async function unfurl(url: string): Promise<{ values: Partial<ItemFormVal
   const p = data.product || {};
   return {
     partial: Boolean(data.partial),
+    variants: Array.isArray(data.variants) ? data.variants : [],
     values: {
       url: p.url || url,
       title: p.title || '',
@@ -50,16 +54,39 @@ export async function unfurl(url: string): Promise<{ values: Partial<ItemFormVal
 
 export function ItemEditor({
   initial,
+  initialVariants = [],
   mode,
   onSave,
   onCancel,
 }: {
   initial: ItemFormValues;
+  initialVariants?: ProductVariant[];
   mode: 'add' | 'edit';
-  onSave: (values: ItemFormValues) => Promise<boolean>;
+  /** One entry per wish to save: several when several versions are picked. */
+  onSave: (values: ItemFormValues[]) => Promise<boolean>;
   onCancel: () => void;
 }) {
-  const [values, setValues] = useState<ItemFormValues>(initial);
+  const firstPick =
+    initial.variant && initialVariants.some((v) => v.name === initial.variant)
+      ? initial.variant
+      : initialVariants[0] && mode === 'add'
+        ? initialVariants[0].name
+        : null;
+  // Open on the picked version's own photo, price and link.
+  const [values, setValues] = useState<ItemFormValues>(() => {
+    const v = initialVariants.find((x) => x.name === firstPick);
+    if (!v || mode !== 'add') return initial;
+    return {
+      ...initial,
+      variant: v.name,
+      imageUrl: v.imageUrl || initial.imageUrl,
+      price: v.price !== null ? String(v.price) : initial.price,
+      currency: v.currency || initial.currency,
+      url: v.url || initial.url,
+    };
+  });
+  const [variants, setVariants] = useState<ProductVariant[]>(initialVariants);
+  const [picked, setPicked] = useState<string[]>(firstPick ? [firstPick] : []);
   const [busy, setBusy] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [hint, setHint] = useState('');
@@ -102,14 +129,44 @@ export function ItemEditor({
       price: result.values.price || v.price,
       currency: result.values.currency || v.currency,
     }));
+    setVariants(result.variants);
+    if (result.variants[0]) pickVariants([result.variants[0].name], result.variants);
     if (result.partial) setHint('That store didn’t share its details with us. Fill them in, or use the bookmarklet on the product page.');
+  };
+
+  /** Picking one version shows its own photo, price and link. */
+  const pickVariants = (names: string[], list: ProductVariant[] = variants) => {
+    setPicked(names);
+    const only = names.length === 1 ? list.find((v) => v.name === names[0]) : null;
+    if (only) {
+      setValues((v) => ({
+        ...v,
+        variant: only.name,
+        imageUrl: only.imageUrl || v.imageUrl,
+        price: only.price !== null ? String(only.price) : v.price,
+        currency: only.currency || v.currency,
+        url: only.url || v.url,
+      }));
+    }
   };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (busy) return;
     setBusy(true);
-    const ok = await onSave(values);
+    const chosen = variants.filter((v) => picked.includes(v.name));
+    const list =
+      chosen.length > 1
+        ? chosen.map((v) => ({
+            ...values,
+            variant: v.name,
+            imageUrl: v.imageUrl || values.imageUrl,
+            price: v.price !== null ? String(v.price) : values.price,
+            currency: v.currency || values.currency,
+            url: v.url || values.url,
+          }))
+        : [{ ...values, variant: chosen[0]?.name ?? values.variant }];
+    const ok = await onSave(list);
     if (!ok) setBusy(false);
   };
 
@@ -168,6 +225,15 @@ export function ItemEditor({
         </div>
       </div>
 
+      {variants.length > 1 ? (
+        <VariantPicker variants={variants} selected={picked} onChange={(names) => pickVariants(names)} multiple={mode === 'add'} />
+      ) : (
+        <div>
+          <label className="field-label" htmlFor="item-variant">Version <span className="dim font-normal">(optional)</span></label>
+          <input id="item-variant" className="field" maxLength={80} placeholder="Size, colour, character…" value={values.variant} onChange={(e) => set('variant', e.target.value)} />
+        </div>
+      )}
+
       <div className="grid grid-cols-[1fr_110px_90px] gap-3">
         <div>
           <label className="field-label" htmlFor="item-price">Price</label>
@@ -223,7 +289,8 @@ export function ItemEditor({
       <div className="flex gap-2 justify-end pt-2">
         <button type="button" className="btn btn-bare" onClick={onCancel}>Cancel</button>
         <button type="submit" className="btn btn-primary" disabled={busy || !values.title.trim()}>
-          {busy ? <span className="spinner" /> : null} {mode === 'add' ? 'Add to wishlist' : 'Save'}
+          {busy ? <span className="spinner" /> : null}{' '}
+          {mode === 'add' ? (picked.length > 1 && variants.length > 1 ? `Add ${picked.length} wishes` : 'Add to wishlist') : 'Save'}
         </button>
       </div>
     </form>

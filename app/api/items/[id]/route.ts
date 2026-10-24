@@ -21,6 +21,7 @@ export const PATCH = handler(async (request: Request, { params }: Ctx) => {
   const body = await readJson(request);
   const item = await updateItem(id, {
     title: body.title as string | undefined,
+    variant: body.variant as string | undefined,
     url: body.url as string | undefined,
     imageUrl: body.imageUrl as string | undefined,
     price: body.price as number | undefined,

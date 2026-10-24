@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toaster';
 import { CurrencyPicker, useMoney } from '@/components/Money';
 import { convert } from '@/lib/money';
 import { plural } from '@/lib/format';
-import type { Item, Wishlist } from '@/lib/types';
+import type { Item, ProductVariant, Wishlist } from '@/lib/types';
 import { ItemCard } from './ItemCard';
 import { ItemDetail } from './ItemDetail';
 import { ItemEditor, emptyValues, unfurl, type ItemFormValues } from './ItemEditor';
@@ -43,6 +43,7 @@ function sortItems(items: Item[], sort: Sort, value: (item: Item) => number | nu
 function toPayload(values: ItemFormValues) {
   return {
     title: values.title,
+    variant: values.variant.trim(),
     url: values.url.trim() || null,
     imageUrl: values.imageUrl.trim() || null,
     price: values.price.trim() || null,
@@ -76,7 +77,7 @@ export function WishlistView({
   const [items, setItems] = useState(initialItems);
   const [sort, setSort] = useState<Sort>('custom');
   const [openId, setOpenId] = useState<string | null>(null);
-  const [editor, setEditor] = useState<{ mode: 'add' | 'edit'; id?: string; values: ItemFormValues } | null>(null);
+  const [editor, setEditor] = useState<{ mode: 'add' | 'edit'; id?: string; values: ItemFormValues; variants?: ProductVariant[] } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [quick, setQuick] = useState('');
   const [quickBusy, setQuickBusy] = useState(false);
@@ -152,20 +153,22 @@ export function WishlistView({
     setEditor({
       mode: 'add',
       values: emptyValues({ ...result.values, currency: result.values.currency || defaultCurrency }, defaultCurrency),
+      variants: result.variants,
     });
     if (result.partial) toast('That store kept its details to itself. Fill in the rest, or use the bookmarklet.', 'info');
   };
 
-  const saveItem = async (values: ItemFormValues): Promise<boolean> => {
+  const saveItem = async (entries: ItemFormValues[]): Promise<boolean> => {
     try {
       if (editor?.mode === 'edit' && editor.id) {
-        const { item } = await api(`/api/items/${editor.id}`, 'PATCH', toPayload(values));
+        const { item } = await api(`/api/items/${editor.id}`, 'PATCH', toPayload(entries[0]));
         setItems((current) => current.map((i) => (i.id === item.id ? { ...i, ...item } : i)));
         toast('Saved.', 'success');
       } else {
-        const { items: created } = await api(`/api/lists/${list.id}/items`, 'POST', { item: toPayload(values) });
+        // Several picked versions are added together, each as its own wish.
+        const { items: created } = await api(`/api/lists/${list.id}/items`, 'POST', { items: entries.map(toPayload), placement: 'top' });
         setItems((current) => [...created, ...current]);
-        toast('Added to your wishlist.', 'success');
+        toast(created.length > 1 ? `Added ${created.length} wishes.` : 'Added to your wishlist.', 'success');
       }
       setEditor(null);
       return true;
@@ -438,6 +441,7 @@ export function WishlistView({
                 id: openItem.id,
                 values: emptyValues({
                   title: openItem.title,
+                  variant: openItem.variant,
                   url: openItem.url || '',
                   imageUrl: openItem.imageUrl || '',
                   price: openItem.price !== null ? String(openItem.price) : '',
@@ -458,7 +462,7 @@ export function WishlistView({
       </Modal>
 
       <Modal open={Boolean(editor)} onClose={() => setEditor(null)} title={editor?.mode === 'edit' ? 'Edit wish' : 'Add a wish'}>
-        {editor && <ItemEditor key={editor.id ?? 'new'} initial={editor.values} mode={editor.mode} onSave={saveItem} onCancel={() => setEditor(null)} />}
+        {editor && <ItemEditor key={editor.id ?? 'new'} initial={editor.values} initialVariants={editor.variants} mode={editor.mode} onSave={saveItem} onCancel={() => setEditor(null)} />}
       </Modal>
 
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Wishlist settings">

@@ -10,7 +10,8 @@ import { useMoney } from '@/components/Money';
 import { cleanPrice, currencyFromSymbol } from '@/lib/currency';
 import { DISPLAY_CURRENCIES } from '@/lib/money';
 import { hostOf } from '@/lib/format';
-import type { ItemDraft } from '@/lib/types';
+import type { ItemDraft, ProductVariant } from '@/lib/types';
+import { VariantPicker } from './VariantPicker';
 import { Wordmark } from './Wordmark';
 
 /**
@@ -27,6 +28,7 @@ interface ListOption {
 
 interface ProductDraft {
   title: string;
+  variant: string;
   url: string;
   imageUrl: string;
   price: string;
@@ -56,6 +58,7 @@ function toDraft(product: Record<string, unknown>): ProductDraft {
   const currency = str(product.currency, 3).toUpperCase() || currencyFromSymbol(price, hostOf(url)) || '';
   return {
     title: str(product.title, 200).trim(),
+    variant: '',
     url,
     imageUrl: str(product.imageUrl),
     price: price.replace(/[^\d.,]/g, ''),
@@ -94,6 +97,8 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
   const [error, setError] = useState('');
   const received = useRef(false);
   const money = useMoney();
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [picked, setPicked] = useState<string[]>([]);
 
   const accept = useCallback(async (payload: Record<string, unknown>) => {
     if (received.current) return;
@@ -107,8 +112,9 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
       // Stores we read through their own product API (their pages are empty app shells)
       // get the server's answer outright; for the rest, the server only fills gaps.
       const apiStore = /(^|\.)amiami\.com$/.test(hostOf(draft.url));
+      const ask = () => (draft.url ? unfurl(draft.url).catch(() => null) : Promise.resolve(null));
       if (apiStore || !draft.title || !draft.imageUrl) {
-        const more = draft.url ? await unfurl(draft.url) : null;
+        const more = await ask();
         if (more && !('error' in more) && !more.partial && apiStore) {
           draft.title = more.values.title || draft.title;
           draft.imageUrl = more.values.imageUrl || draft.imageUrl;
@@ -119,8 +125,20 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
           draft.imageUrl ||= more.values.imageUrl || '';
           draft.price ||= more.values.price || '';
         }
+        if (more && !('error' in more) && more.variants.length > 1) {
+          setVariants(more.variants);
+          setPicked([more.variants[0].name]);
+        }
+        setPhase({ name: 'product', draft });
+        return;
       }
       setPhase({ name: 'product', draft });
+      // The page itself rarely lists versions; the server knows them for TOM, Shopify and others.
+      void ask().then((more) => {
+        if (!more || 'error' in more || more.variants.length < 2) return;
+        setVariants(more.variants);
+        setPicked([more.variants[0].name]);
+      });
       return;
     }
 
@@ -245,11 +263,21 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
       const response = await fetch(`/api/lists/${listId}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item: { ...draft, price: draft.price || null } }),
+        // Several picked versions become one wish each, with that version's photo and price.
+        body: JSON.stringify(
+          variants.length > 1 && picked.length
+            ? {
+                items: variants
+                  .filter((v) => picked.includes(v.name))
+                  .map((v) => ({ ...draft, variant: v.name, imageUrl: v.imageUrl || draft.imageUrl, price: v.price ?? (draft.price || null), currency: v.currency || draft.currency, url: v.url || draft.url })),
+                placement: 'top',
+              }
+            : { item: { ...draft, price: draft.price || null } }
+        ),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Could not add it.');
-      finish(list.slug, list.title, 1);
+      finish(list.slug, list.title, Array.isArray(data.items) ? data.items.length : 1);
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
@@ -349,6 +377,8 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
                 </button>
               </div>
             </div>
+
+            {variants.length > 1 && <VariantPicker variants={variants} selected={picked} onChange={setPicked} multiple />}
 
             <div>
               <label className="field-label" htmlFor="clip-target">Add to</label>

@@ -41,7 +41,10 @@ export function ImportReview({
   const [target, setTarget] = useState(
     lists.some((l) => l.id === defaultTarget) ? defaultTarget : imported.single && lists[0] ? lists[0].id : 'new'
   );
-  const [skipped, setSkipped] = useState<Set<number>>(new Set());
+  // A single product's versions start with just the first one picked.
+  const [skipped, setSkipped] = useState<Set<number>>(
+    () => new Set(imported.single && imported.items.length > 1 ? imported.items.map((_, i) => i).slice(1) : [])
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const chosen = useMemo(() => imported.items.filter((_, i) => !skipped.has(i)), [imported.items, skipped]);
@@ -132,6 +135,7 @@ export function ImportReview({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-semibold leading-snug clamp-2">{item.title}</span>
+                  {item.variant && <span className="chip chip-violet mt-1 !h-5 !text-[10px]">{item.variant}</span>}
                   <span className="block text-[11.5px] dim mt-0.5 truncate">
                     {money.price(item.price, item.currency) ? <b className="text-[var(--color-violet-lift)]">{money.price(item.price, item.currency)!.local}</b> : 'No price'}
                     {(item.store || hostOf(item.url)) && <> · {item.store || hostOf(item.url)}</>}

@@ -12,7 +12,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export const POST = handler(async (request: Request, { params }: Ctx) => {
   const { id } = await params;
   await requireEditableList(id);
-  const body = await readJson<{ item?: Record<string, unknown>; items?: Record<string, unknown>[] }>(request);
+  const body = await readJson<{ item?: Record<string, unknown>; items?: Record<string, unknown>[]; placement?: string }>(request);
   const raw = body.items ?? (body.item ? [body.item] : []);
   const drafts = raw
     .slice(0, 500)
@@ -20,7 +20,8 @@ export const POST = handler(async (request: Request, { params }: Ctx) => {
     .filter((d): d is ItemDraft => d !== null);
   if (drafts.length === 0) return fail('Give the item a name or a link.');
   try {
-    const items = await addItems(id, drafts, { placement: body.items ? 'bottom' : 'top' });
+    const placement = body.placement === 'top' || body.placement === 'bottom' ? body.placement : body.items ? 'bottom' : 'top';
+    const items = await addItems(id, drafts, { placement });
     return ok({ items }, 201);
   } catch (error) {
     return fail((error as Error).message);
