@@ -36,8 +36,9 @@ export async function fetchImport(raw: string): Promise<ImportedList> {
       const single = await fetchProduct(url.toString()).catch(() => null);
       const draft = single && !single.partial ? sanitizeDraft(single.product) : null;
       if (draft) {
-        // A product that comes in versions becomes one row per version to pick from.
-        const items = single!.variants.length
+        // A product that comes in versions becomes one row per version to pick from;
+        // sizes stay one row, since a row per shoe size is noise.
+        const items = single!.variants.length && single!.selected !== null
           ? single!.variants
               .map((v) => sanitizeDraft({ ...draft, variant: v.name, imageUrl: v.imageUrl ?? draft.imageUrl, price: v.price ?? draft.price, currency: v.currency ?? draft.currency, url: v.url ?? draft.url }))
               .filter((d): d is ItemDraft => d !== null)

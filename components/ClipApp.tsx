@@ -127,7 +127,7 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
         }
         if (more && !('error' in more) && more.variants.length > 1) {
           setVariants(more.variants);
-          setPicked([more.variants[0].name]);
+          setPicked(more.values.variant ? [more.values.variant] : []);
         }
         setPhase({ name: 'product', draft });
         return;
@@ -137,7 +137,7 @@ export function ClipApp({ fallbackUrl }: { fallbackUrl: string | null }) {
       void ask().then((more) => {
         if (!more || 'error' in more || more.variants.length < 2) return;
         setVariants(more.variants);
-        setPicked([more.variants[0].name]);
+        setPicked(more.values.variant ? [more.values.variant] : []);
       });
       return;
     }

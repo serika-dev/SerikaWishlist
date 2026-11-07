@@ -45,6 +45,8 @@ export async function unfurl(url: string): Promise<{ values: Partial<ItemFormVal
     values: {
       url: p.url || url,
       title: p.title || '',
+      // The version the link points at; the editor opens on it.
+      variant: typeof data.selected === 'string' ? data.selected : '',
       imageUrl: p.imageUrl || '',
       price: p.price !== null && p.price !== undefined ? String(p.price) : '',
       currency: p.currency || '',
@@ -66,12 +68,7 @@ export function ItemEditor({
   onSave: (values: ItemFormValues[]) => Promise<boolean>;
   onCancel: () => void;
 }) {
-  const firstPick =
-    initial.variant && initialVariants.some((v) => v.name === initial.variant)
-      ? initial.variant
-      : initialVariants[0] && mode === 'add'
-        ? initialVariants[0].name
-        : null;
+  const firstPick = initial.variant && initialVariants.some((v) => v.name === initial.variant) ? initial.variant : null;
   // Open on the picked version's own photo, price and link.
   const [values, setValues] = useState<ItemFormValues>(() => {
     const v = initialVariants.find((x) => x.name === firstPick);
@@ -128,9 +125,12 @@ export function ItemEditor({
       imageUrl: result.values.imageUrl || v.imageUrl,
       price: result.values.price || v.price,
       currency: result.values.currency || v.currency,
+      // A version picked from an earlier answer may not exist in this one.
+      variant: result.variants.length ? '' : v.variant,
     }));
     setVariants(result.variants);
-    if (result.variants[0]) pickVariants([result.variants[0].name], result.variants);
+    if (result.values.variant) pickVariants([result.values.variant], result.variants);
+    else setPicked([]);
     if (result.partial) setHint('That store didn’t share its details with us. Fill them in, or use the bookmarklet on the product page.');
   };
 
